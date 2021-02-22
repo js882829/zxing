@@ -22,6 +22,7 @@ import com.google.zxing.common.DecoderResult;
 import com.google.zxing.pdf417.PDF417ResultMetadata;
 
 import java.io.ByteArrayOutputStream;
+import java.io.UnsupportedEncodingException;
 import java.math.BigInteger;
 import java.nio.charset.Charset;
 import java.nio.charset.StandardCharsets;
@@ -125,7 +126,7 @@ final class DecodedBitStreamParser {
         case ECI_CHARSET:
           CharacterSetECI charsetECI =
               CharacterSetECI.getCharacterSetECIByValue(codewords[codeIndex++]);
-          encoding = Charset.forName(charsetECI.name());
+          encoding = charsetECI.getCharset();
           break;
         case ECI_GENERAL_PURPOSE:
           // Can't do anything with generic ECI; skip its 2 characters
@@ -164,6 +165,7 @@ final class DecodedBitStreamParser {
     return decoderResult;
   }
 
+  @SuppressWarnings("deprecation")
   static int decodeMacroBlock(int[] codewords, int codeIndex, PDF417ResultMetadata resultMetadata)
       throws FormatException {
     if (codeIndex + NUMBER_OF_SEQUENCE_CODEWORDS > codewords[0]) {
@@ -421,6 +423,7 @@ final class DecodedBitStreamParser {
                 subMode = Mode.LOWER;
                 break;
               case AL:
+              case TEXT_COMPACTION_MODE_LATCH:
                 subMode = Mode.ALPHA;
                 break;
               case PS:
@@ -430,9 +433,6 @@ final class DecodedBitStreamParser {
                 break;
               case MODE_SHIFT_TO_BYTE_COMPACTION_MODE:
                 result.append((char) byteCompactionData[i]);
-                break;
-              case TEXT_COMPACTION_MODE_LATCH:
-                subMode = Mode.ALPHA;
                 break;
             }
           }
@@ -445,13 +445,11 @@ final class DecodedBitStreamParser {
           } else {
             switch (subModeCh) {
               case PAL:
+              case TEXT_COMPACTION_MODE_LATCH:
                 subMode = Mode.ALPHA;
                 break;
               case MODE_SHIFT_TO_BYTE_COMPACTION_MODE:
                 result.append((char) byteCompactionData[i]);
-                break;
-              case TEXT_COMPACTION_MODE_LATCH:
-                subMode = Mode.ALPHA;
                 break;
             }
           }
@@ -482,15 +480,13 @@ final class DecodedBitStreamParser {
           } else {
             switch (subModeCh) {
               case PAL:
+              case TEXT_COMPACTION_MODE_LATCH:
                 subMode = Mode.ALPHA;
                 break;
               case MODE_SHIFT_TO_BYTE_COMPACTION_MODE:
                 // PS before Shift-to-Byte is used as a padding character,
                 // see 5.4.2.4 of the specification
                 result.append((char) byteCompactionData[i]);
-                break;
-              case TEXT_COMPACTION_MODE_LATCH:
-                subMode = Mode.ALPHA;
                 break;
             }
           }
@@ -613,7 +609,12 @@ final class DecodedBitStreamParser {
         }
         break;
     }
-    result.append(new String(decodedBytes.toByteArray(), encoding));
+    try {
+      result.append(decodedBytes.toString(encoding.name()));
+    } catch (UnsupportedEncodingException uee) {
+      // can't happen
+      throw new IllegalStateException(uee);
+    }
     return codeIndex;
   }
 

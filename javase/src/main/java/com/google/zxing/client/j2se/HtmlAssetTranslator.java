@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package com.google.zxing;
+package com.google.zxing.client.j2se;
 
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
@@ -52,16 +52,18 @@ import java.util.regex.Pattern;
  * as a comma-separated list. Specify "all" for language to try to translate for all existing translations.
  * Each argument after this is the name of a file to translate; if the first one is "all", all files will
  * be translated.</p>
- * 
+ *
  * <p>Usage: {@code HtmlAssetTranslator android/assets/ (all|lang1[,lang2 ...]) (all|file1.html[ file2.html ...])}</p>
  *
- * <p>{@code android/assets/ es all} will translate .html files in subdirectory html-en to 
- * directory html-es, for example. Note that only text nodes in the HTML document are translated. 
- * Any text that is a child of a node with {@code class="notranslate"} will not be translated. It will 
+ * <p>{@code android/assets/ es all} will translate .html files in subdirectory html-en to
+ * directory html-es, for example. Note that only text nodes in the HTML document are translated.
+ * Any text that is a child of a node with {@code class="notranslate"} will not be translated. It will
  * also add a note at the end of the translated page that indicates it was automatically translated.</p>
  *
  * @author Sean Owen
+ * @deprecated without replacement since 3.4.2
  */
+@Deprecated
 public final class HtmlAssetTranslator {
 
   private static final Pattern COMMA = Pattern.compile(",");
@@ -87,13 +89,10 @@ public final class HtmlAssetTranslator {
                                                               String languageArg) throws IOException {
     if ("all".equals(languageArg)) {
       Collection<String> languages = new ArrayList<>();
-      DirectoryStream.Filter<Path> fileFilter = new DirectoryStream.Filter<Path>() {
-        @Override
-        public boolean accept(Path entry) {
-          String fileName = entry.getFileName().toString();
-          return Files.isDirectory(entry) && !Files.isSymbolicLink(entry) &&
-              fileName.startsWith("html-") && !"html-en".equals(fileName);
-        }
+      DirectoryStream.Filter<Path> fileFilter = entry -> {
+        String fileName = entry.getFileName().toString();
+        return Files.isDirectory(entry) && !Files.isSymbolicLink(entry) &&
+            fileName.startsWith("html-") && !"html-en".equals(fileName);
       };
       try (DirectoryStream<Path> dirs = Files.newDirectoryStream(assetsDir, fileFilter)) {
         for (Path languageDir : dirs) {
@@ -132,12 +131,9 @@ public final class HtmlAssetTranslator {
     String translationTextTranslated =
         StringsResourceTranslator.translateString("Translated by Google Translate.", language);
 
-    DirectoryStream.Filter<Path> filter = new DirectoryStream.Filter<Path>() {
-      @Override
-      public boolean accept(Path entry) {
-        String name = entry.getFileName().toString();
-        return name.endsWith(".html") && (filesToTranslate.isEmpty() || filesToTranslate.contains(name));
-      }
+    DirectoryStream.Filter<Path> filter = entry -> {
+      String name = entry.getFileName().toString();
+      return name.endsWith(".html") && (filesToTranslate.isEmpty() || filesToTranslate.contains(name));
     };
     try (DirectoryStream<Path> files = Files.newDirectoryStream(englishHtmlDir, filter)) {
       for (Path sourceFile : files) {

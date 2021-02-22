@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package com.google.zxing;
+package com.google.zxing.client.j2se;
 
 import java.io.BufferedReader;
 import java.io.IOException;
@@ -49,7 +49,9 @@ import java.util.regex.Pattern;
  * <p>You must set your Google Translate API key into the environment with -DtranslateAPI.key=...</p>
  *
  * @author Sean Owen
+ * @deprecated without replacement since 3.4.2
  */
+@Deprecated
 public final class StringsResourceTranslator {
 
   private static final String API_KEY = System.getProperty("translateAPI.key");
@@ -58,7 +60,7 @@ public final class StringsResourceTranslator {
       throw new IllegalArgumentException("translateAPI.key is not specified");
     }
   }
-  
+
   private static final Pattern ENTRY_PATTERN = Pattern.compile("<string name=\"([^\"]+)\".*>([^<]+)</string>");
   private static final Pattern STRINGS_FILE_NAME_PATTERN = Pattern.compile("values-(.+)");
   private static final Pattern TRANSLATE_RESPONSE_PATTERN = Pattern.compile("translatedText\":\\s*\"([^\"]+)\"");
@@ -95,13 +97,9 @@ public final class StringsResourceTranslator {
     Path stringsFile = valueDir.resolve("strings.xml");
     Collection<String> forceRetranslation = Arrays.asList(args).subList(1, args.length);
 
-    DirectoryStream.Filter<Path> filter = new DirectoryStream.Filter<Path>() {
-      @Override
-      public boolean accept(Path entry) {
-        return Files.isDirectory(entry) && !Files.isSymbolicLink(entry) &&
-            VALUES_DIR_PATTERN.matcher(entry.getFileName().toString()).matches();
-      }
-    };
+    DirectoryStream.Filter<Path> filter = entry ->
+      Files.isDirectory(entry) && !Files.isSymbolicLink(entry) &&
+        VALUES_DIR_PATTERN.matcher(entry.getFileName().toString()).matches();
     try (DirectoryStream<Path> dirs = Files.newDirectoryStream(resDir, filter)) {
       for (Path dir : dirs) {
         translate(stringsFile, dir.resolve("strings.xml"), forceRetranslation);
