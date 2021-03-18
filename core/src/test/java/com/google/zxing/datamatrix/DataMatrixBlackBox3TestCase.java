@@ -14,22 +14,23 @@
  * limitations under the License.
  */
 
-package com.google.zxing.aztec;
+package com.google.zxing.datamatrix;
 
 import com.google.zxing.BarcodeFormat;
+import com.google.zxing.MultiFormatReader;
 import com.google.zxing.common.AbstractBlackBoxTestCase;
 
 /**
- * @author David Olivier
+ * @author gitlost
  */
-public final class AztecBlackBox1TestCase extends AbstractBlackBoxTestCase {
+public final class DataMatrixBlackBox3TestCase extends AbstractBlackBoxTestCase {
 
-  public AztecBlackBox1TestCase() {
-    super("src/test/resources/blackbox/aztec-1", new AztecReader(), BarcodeFormat.AZTEC);
-    addTest(14, 14, 0.0f);
-    addTest(14, 14, 90.0f);
-    addTest(14, 14, 180.0f);
-    addTest(14, 14, 270.0f);
+  public DataMatrixBlackBox3TestCase() {
+    super("src/test/resources/blackbox/datamatrix-3", new MultiFormatReader(), BarcodeFormat.DATA_MATRIX);
+    addTest(18, 18, 0.0f);
+    addTest(17, 17, 90.0f);
+    addTest(18, 18, 180.0f);
+    addTest(18, 18, 270.0f);
   }
 
 }
